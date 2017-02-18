@@ -7,12 +7,15 @@
 //
 
 import UIKit
+import CoreData
 
-class MainVC: UIViewController,UITableViewDelegate,UITableViewDataSource {
+class MainVC: UIViewController,UITableViewDelegate,UITableViewDataSource,NSFetchedResultsControllerDelegate {
 
     
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var segment: UISegmentedControl!
+    
+    var Controller: NSFetchedResultsController<Item>!
     
     
     
@@ -37,5 +40,69 @@ class MainVC: UIViewController,UITableViewDelegate,UITableViewDataSource {
     }
    
 
+    func attempptFetch(){
+        let fetchRequest: NSFetchRequest<Item> = Item.fetchRequest()
+        let dateSort = NSSortDescriptor(key: "created", ascending: false)
+        
+        fetchRequest.sortDescriptors = [dateSort]
+        
+        let controller = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        
+        do {
+            try controller.performFetch()
+            
+        }catch{
+            let error = error as NSError
+            print("\(error)")
+        }
+    }
+
+    func controllerWillChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        tableView.beginUpdates()
+    }
+    
+    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+        tableView.endUpdates()
+    }
+    
+
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChange anObject: Any, at indexPath: IndexPath?, for type: NSFetchedResultsChangeType, newIndexPath: IndexPath?) {
+        
+        switch(type) {
+            
+        case.insert:
+            if let indexPath = newIndexPath {
+                tableView.insertRows(at: [indexPath], with: .fade)
+            }
+        break
+            
+        case.delete:
+            if let indexPath = indexPath {
+                tableView.deleteRows(at: [indexPath], with: .fade)
+            }
+            break
+            
+        case.update:
+            if let indexPath = indexPath {
+                let cell = tableView.cellForRow(at: indexPath) as! ItemCell
+            }
+            break
+            
+        case.move:
+            if let indexPath = indexPath{
+                tableView.deleteRows(at: [indexPath], with: .fade)
+            }
+            
+            if let indexPath = newIndexPath{
+                tableView.insertRows(at: [indexPath], with: .fade)
+            }
+            break
+        }
+        
+    }
+
 }
+
+
+
 
